@@ -1,9 +1,7 @@
 import mongoose from 'mongoose'
+import { EnvironmentVars } from './env.js'
 
-const uri =
-  'mongodb+srv://copa-sabados:XXXXX@cluster0.0zbxt.mongodb.net/copa-sabados'
-
-process.env.MONGODB_URI
+const uri = EnvironmentVars.MONGODB_URI
 
 export const connectToMongo = () => {
   mongoose.connect(uri, {

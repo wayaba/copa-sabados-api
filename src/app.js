@@ -5,6 +5,7 @@ import { playersRouter } from './routes/players.js'
 import { teamsRouter } from './routes/teams.js'
 import { matchesRouter } from './routes/matches.js'
 import { tournamentsRouter } from './routes/tournaments.js'
+import { EnvironmentVars } from './config/env.js'
 
 const app = express()
 app.use(json())
@@ -23,7 +24,7 @@ app.use('/teams', teamsRouter)
 app.use('/matches', matchesRouter)
 app.use('/tournaments', tournamentsRouter)
 
-const PORT = process.env.PORT ?? 1234
+const PORT = EnvironmentVars.PORT
 
 app.listen(PORT, () => {
   console.log('listening on port', PORT)
