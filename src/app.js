@@ -6,6 +6,7 @@ import { teamsRouter } from './routes/teams.js'
 import { matchesRouter } from './routes/matches.js'
 import { tournamentsRouter } from './routes/tournaments.js'
 import { EnvironmentVars } from './config/env.js'
+import { authRouter } from './routes/auth.js'
 
 const app = express()
 app.use(json())
@@ -19,6 +20,7 @@ app.get('/', (req, res) => {
   res.json({ message: 'hola mundo' })
 })
 
+app.use('/auth', authRouter)
 app.use('/players', playersRouter)
 app.use('/teams', teamsRouter)
 app.use('/matches', matchesRouter)
