@@ -1,5 +1,5 @@
 import cors from 'cors'
-import { messages } from '../utils/messages'
+import { messages } from '../utils/messages.js'
 
 const ACCEPTED_ORIGINS = ['http://localhost:8080', 'http://mymovie.com']
 

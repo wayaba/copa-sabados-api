@@ -5,3 +5,4 @@ import { PlayerController } from '../controllers/players.js'
 export const playersRouter = Router()
 
 playersRouter.get('/', [verifyToken], PlayerController.getAll)
+playersRouter.get('/positions', PlayerController.getPositions)
