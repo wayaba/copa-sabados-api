@@ -1,4 +1,5 @@
 import cors from 'cors'
+import { messages } from '../utils/messages'
 
 const ACCEPTED_ORIGINS = ['http://localhost:8080', 'http://mymovie.com']
 
@@ -9,6 +10,6 @@ export const corsMiddleware = ({ acceptedOrigins = ACCEPTED_ORIGINS } = {}) =>
 
       if (!origin) return callback(null, true)
 
-      return callback(new Error('Not allowed by CORS'))
+      return callback(new Error(messages.error.notAllowByCors))
     }
   })

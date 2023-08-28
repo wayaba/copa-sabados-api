@@ -3,7 +3,8 @@ export const messages = {
     userOrPassWrong: 'Wrong Username or password',
     connectionError: 'Database connection error',
     noTokenProvided: 'No token provided',
-    notAuthorized: 'Unauthorized'
+    notAuthorized: 'Unauthorized',
+    notAllowByCors: 'Not allowed by CORS'
   },
   success: {
     databaseConnected: 'Database connected successfully',
