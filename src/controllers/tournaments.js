@@ -1,4 +1,8 @@
 import { TournamentModel } from '../models/tournaments.js'
+import {
+  validatePartialTournament,
+  validateTournament
+} from '../schemas/tournaments.js'
 
 export class TournamentController {
   static async getAll(req, res) {
@@ -6,12 +10,91 @@ export class TournamentController {
     return res.json(result)
   }
 
+  static async create(req, res) {
+    const result = validateTournament(req.body)
+
+    if (!result.success) {
+      return res.status(400).json({ error: JSON.parse(result.error.message) })
+    }
+
+    const newTournament = new TournamentModel({
+      name: result.data.name,
+      win: result.data.win,
+      draw: result.data.draw,
+      lose: result.data.lose
+    })
+
+    try {
+      const savedTournament = await newTournament.save()
+
+      res.status(201).json(savedTournament)
+    } catch (error) {
+      res.status(400).json({ error: error.message })
+    }
+  }
+
+  static async getById(req, res) {
+    const { id } = req.params
+
+    try {
+      const tournament = await TournamentModel.findById(id)
+      if (tournament) return res.json(tournament)
+      res.status(404).json({ message: 'Tournament not found' })
+    } catch (error) {
+      res.status(400).json({ error: error.message })
+    }
+  }
+
+  static async update(req, res) {
+    const result = validatePartialTournament(req.body)
+
+    if (!result.success) {
+      return res.status(400).json({ error: JSON.parse(result.error.message) })
+    }
+
+    const { id } = req.params
+
+    const tournamentNewInfo = {
+      name: result.data.name,
+      win: result.data.win,
+      draw: result.data.draw,
+      lose: result.data.lose
+    }
+
+    const updatedTournament = await TournamentModel.findOneAndUpdate(
+      { _id: id },
+      tournamentNewInfo,
+      {
+        new: true
+      }
+    )
+
+    return res.json(updatedTournament)
+  }
+
+  static async delete(req, res) {
+    const { id } = req.params
+    const result = await TournamentModel.findByIdAndDelete(id)
+
+    if (result === false) {
+      return res.status(404).json({ message: 'Tournament not found' })
+    }
+
+    return res.json({ message: 'Tournament deleted' })
+  }
+
   static async getPositions(req, res) {
-    const targetTournamentId = '64e8bcb04a07c0312d29df8a'
+    const { name = '2023' } = req.body
     const result = await TournamentModel.aggregate([
       {
-        $match: {
-          _id: targetTournamentId
+        $match: { name: name }
+      },
+      {
+        $lookup: {
+          from: 'matches',
+          localField: '_id',
+          foreignField: 'tournament',
+          as: 'matches'
         }
       },
       {
@@ -19,77 +102,42 @@ export class TournamentController {
       },
       {
         $lookup: {
-          from: 'matches',
-          localField: 'matches',
-          foreignField: '_id',
-          as: 'match_details'
-        }
-      },
-      {
-        $unwind: '$match_details'
-      },
-      {
-        $lookup: {
           from: 'teams',
-          localField: 'match_details.team1',
+          localField: 'matches.team',
           foreignField: '_id',
-          as: 'team1'
+          as: 'team'
         }
       },
       {
-        $lookup: {
-          from: 'teams',
-          localField: 'match_details.team2',
-          foreignField: '_id',
-          as: 'team2'
-        }
+        $unwind: '$team'
       },
       {
-        $unwind: '$team1'
-      },
-      {
-        $unwind: '$team2'
-      },
-      {
-        $lookup: {
-          from: 'players',
-          localField: 'team1.players',
-          foreignField: '_id',
-          as: 'team1.players'
-        }
-      },
-      {
-        $lookup: {
-          from: 'players',
-          localField: 'team2.players',
-          foreignField: '_id',
-          as: 'team2.players'
-        }
-      },
-      {
-        $project: {
-          players: {
-            $concatArrays: ['$team1.players', '$team2.players']
-          }
-        }
-      },
-      {
-        $unwind: '$players'
+        $unwind: '$team.players'
       },
       {
         $group: {
-          _id: '$players',
-          total_points: {
+          _id: '$team.players',
+          totalPoints: {
             $sum: {
               $switch: {
                 branches: [
-                  { case: { $eq: ['$players.team1.result', 'W'] }, then: 4 },
-                  { case: { $eq: ['$players.team1.result', 'T'] }, then: 2 },
-                  { case: { $eq: ['$players.team1.result', 'L'] }, then: 1 },
-                  { case: true, then: 0 }
-                ]
+                  { case: { $eq: ['$matches.result', 'W'] }, then: '$win' },
+                  { case: { $eq: ['$matches.result', 'D'] }, then: '$draw' },
+                  { case: { $eq: ['$matches.result', 'L'] }, then: '$lose' }
+                ],
+                default: 0
               }
             }
+          },
+          played: { $sum: 1 },
+          win: {
+            $sum: { $cond: [{ $eq: ['$matches.result', 'W'] }, 1, 0] }
+          },
+          lost: {
+            $sum: { $cond: [{ $eq: ['$matches.result', 'L'] }, 1, 0] }
+          },
+          draw: {
+            $sum: { $cond: [{ $eq: ['$matches.result', 'D'] }, 1, 0] }
           }
         }
       },
@@ -98,23 +146,25 @@ export class TournamentController {
           from: 'players',
           localField: '_id',
           foreignField: '_id',
-          as: 'player_details'
+          as: 'player'
         }
       },
       {
-        $unwind: '$player_details'
+        $unwind: '$player'
       },
       {
         $project: {
-          player_id: '$player_details._id',
-          player_name: '$player_details.name',
-          total_points: 1
+          _id: '$_id',
+          playerName: '$player.name',
+          totalPoints: 1,
+          played: 1,
+          win: 1,
+          lost: 1,
+          draw: 1
         }
       },
       {
-        $sort: {
-          total_points: -1
-        }
+        $sort: { totalPoints: -1 }
       }
     ])
     return res.json(result)

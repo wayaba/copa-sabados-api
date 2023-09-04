@@ -7,11 +7,7 @@ const teamSchema = new Schema({
       type: Schema.Types.ObjectId,
       ref: 'Player'
     }
-  ],
-  result: {
-    type: String,
-    enum: ['W', 'T', 'L']
-  }
+  ]
 })
 
 export const TeamModel = model('Team', teamSchema)

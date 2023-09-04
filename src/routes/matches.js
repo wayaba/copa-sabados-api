@@ -4,4 +4,8 @@ import { MatchController } from '../controllers/matches.js'
 
 export const matchesRouter = Router()
 
-matchesRouter.get('/', [verifyToken], MatchController.getAll)
+matchesRouter.get('/', MatchController.getAll)
+matchesRouter.post('/', [verifyToken], MatchController.create)
+matchesRouter.get('/:id', [verifyToken], MatchController.getById)
+matchesRouter.put('/:id', [verifyToken], MatchController.update)
+matchesRouter.delete('/:id', [verifyToken], MatchController.delete)
