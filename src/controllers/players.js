@@ -1,3 +1,4 @@
+import { Types } from 'mongoose'
 import { PlayerModel } from '../models/players.js'
 
 export class PlayerController {
@@ -7,7 +8,8 @@ export class PlayerController {
   }
 
   static async getPositions(req, res) {
-    const result = PlayerModel.aggregate([
+    //const targetTournamentId = '64e8bcb04a07c0312d29df8a-----88'
+    const result = await PlayerModel.aggregate([
       {
         $lookup: {
           from: 'teams',
@@ -51,6 +53,18 @@ export class PlayerController {
                 ]
               }
             }
+          },
+          wins: {
+            $sum: { $cond: [{ $eq: ['$player_teams.result', 'W'] }, 1, 0] }
+          },
+          draws: {
+            $sum: { $cond: [{ $eq: ['$player_teams.result', 'T'] }, 1, 0] }
+          },
+          losses: {
+            $sum: { $cond: [{ $eq: ['$player_teams.result', 'L'] }, 1, 0] }
+          },
+          matches_played: {
+            $size: '$player_teams.matches'
           }
         }
       },
@@ -58,7 +72,11 @@ export class PlayerController {
         $group: {
           _id: '$_id',
           player_name: { $first: '$name' },
-          total_points: { $sum: '$total_points' }
+          total_points: { $sum: '$total_points' },
+          wins: { $sum: '$wins' },
+          draws: { $sum: '$draws' },
+          losses: { $sum: '$losses' },
+          matches_played: { $sum: '$matches_played' }
         }
       },
       {

@@ -5,3 +5,4 @@ import { TournamentController } from '../controllers/tournaments.js'
 export const tournamentsRouter = Router()
 
 tournamentsRouter.get('/', [verifyToken], TournamentController.getAll)
+tournamentsRouter.get('/positions', TournamentController.getPositions)
