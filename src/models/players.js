@@ -6,4 +6,8 @@ const playerSchema = new Schema({
   nickname: String
 })
 
+playerSchema.statics.getAll = async function () {
+  return await PlayerModel.find()
+}
+
 export const PlayerModel = model('Player', playerSchema)

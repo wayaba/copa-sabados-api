@@ -3,7 +3,8 @@ import { validatePartialPlayer, validatePlayer } from '../schemas/players.js'
 
 export class PlayerController {
   static async getAll(req, res) {
-    const result = await PlayerModel.find()
+    //const result = await PlayerModel.find()
+    const result = await PlayerModel.getAll()
     return res.json(result)
   }
 
