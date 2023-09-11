@@ -3,7 +3,6 @@ import { validatePartialPlayer, validatePlayer } from '../schemas/players.js'
 
 export class PlayerController {
   static async getAll(req, res) {
-    //const result = await PlayerModel.find()
     const result = await PlayerModel.getAll()
     return res.json(result)
   }
@@ -15,15 +14,8 @@ export class PlayerController {
       return res.status(400).json({ error: JSON.parse(result.error.message) })
     }
 
-    const newPlayer = new PlayerModel({
-      name: result.data.name,
-      lastName: result.data.lastName,
-      nickname: result.data.nickname
-    })
-
     try {
-      const savedPlayer = await newPlayer.save()
-
+      const savedPlayer = await PlayerModel.create({ input: result.data })
       res.status(201).json(savedPlayer)
     } catch (error) {
       res.status(400).json({ error: JSON.parse(error.message) })
@@ -34,7 +26,7 @@ export class PlayerController {
     const { id } = req.params
 
     try {
-      const player = await PlayerModel.findById(id)
+      const player = await PlayerModel.getById(id)
       if (player) return res.json(player)
       res.status(404).json({ message: 'Player not found' })
     } catch (error) {
@@ -50,21 +42,7 @@ export class PlayerController {
     }
 
     const { id } = req.params
-
-    const playerNewInfo = {
-      name: result.data.name,
-      lastName: result.data.lastName,
-      nickname: result.data.nickname
-    }
-
-    const updatedPlayer = await PlayerModel.findOneAndUpdate(
-      { _id: id },
-      playerNewInfo,
-      {
-        new: true
-      }
-    )
-
+    const updatedPlayer = await PlayerModel.update(id, { input: result.data })
     return res.json(updatedPlayer)
   }
 
