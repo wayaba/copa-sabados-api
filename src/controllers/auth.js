@@ -21,7 +21,11 @@ export class AuthController {
         if (!passwordIsValid) {
           return res
             .status(404)
-            .send({ message: messages.error.userOrPassWrong })
+            .send({
+              message: messages.error.userOrPassWrong,
+              statusCode: 404,
+              error: 'Bad Request'
+            })
         }
 
         const token = jwt.sign({ id: user.id }, EnvironmentVars.SECRET, {
@@ -37,10 +41,22 @@ export class AuthController {
           accessToken: token
         })
       } else {
-        return res.status(404).send({ message: messages.error.userOrPassWrong })
+        return res
+          .status(404)
+          .send({
+            message: messages.error.userOrPassWrong,
+            statusCode: 404,
+            error: 'Bad Request'
+          })
       }
     } catch (error) {
-      console.error(error)
+      return res
+        .status(400)
+        .send({
+          message: messages.error.userOrPassWrong,
+          statusCode: 400,
+          error: 'Bad Request'
+        })
     }
   }
 }
