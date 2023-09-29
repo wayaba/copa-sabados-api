@@ -2,7 +2,9 @@ import cors from 'cors'
 import { messages } from '../utils/messages.js'
 
 const ACCEPTED_ORIGINS = [
+  '/^http://localhost:3000/.*/',
   'http://localhost:3000',
+  'http://localhost:3000/player',
   'http://mymovie.com',
   'http://localhost:3000/api/auth/signin'
 ]
